@@ -53,7 +53,7 @@ Home, challenge page (with Copy prompt button), raw `.md` copy, archive, about, 
 `robots.txt`, `llms.txt`, `llms-full.txt`, `challenges.json`, JSON-LD (WebSite + HowTo per challenge), OG/Twitter tags.
 
 ## Newsletter
-The newsletter block is the `NEWSLETTER` constant in `build.py` (marked `NEWSLETTER PLACEHOLDER`). Replace the form with the Buttondown embed form when ready.
+The newsletter block (Buttondown embed form, username `dailyvibe`) is the `NEWSLETTER` constant in `build.py`, shown on home, challenge and about pages.
 
 ## Manual redeploy
 `gh workflow run pages.yml` (or push any commit).

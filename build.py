@@ -121,10 +121,12 @@ const t=b.parentElement.querySelector('pre').innerText;try{await navigator.clipb
 const o=b.textContent;b.textContent='Copied ✓';setTimeout(()=>b.textContent=o,1600)});"""
 
 NEWSLETTER = f"""<section class="card newsletter" id="newsletter">
-<!-- NEWSLETTER PLACEHOLDER: replace this form with the Buttondown embed form when ready. -->
 <h2 style="margin-top:0">Get the daily challenge by email</h2>
-<p class="meta">Newsletter coming soon. Until then, follow via <a href="/feed.xml">RSS/Atom</a> or email <a href="mailto:{EMAIL}">{EMAIL}</a>.</p>
-<form onsubmit="return false"><input type="email" placeholder="you@example.com" aria-label="Email" disabled> <button class="btn" disabled>Subscribe (soon)</button></form>
+<p class="meta">One challenge + starter prompt in your inbox each day. Free, unsubscribe anytime.</p>
+<form action="https://buttondown.com/api/emails/embed-subscribe/dailyvibe" method="post" target="popupwindow" onsubmit="window.open('https://buttondown.com/dailyvibe','popupwindow')" style="display:flex;gap:8px;flex-wrap:wrap">
+<input type="email" name="email" id="bd-email" placeholder="you@example.com" aria-label="Email address" required>
+<input type="hidden" value="1" name="embed"><button class="btn" type="submit">Subscribe</button></form>
+<p class="meta">Or follow via <a href="/feed.xml">RSS/Atom</a> · <a href="https://buttondown.com/dailyvibe/archive">Newsletter archive</a></p>
 </section>"""
 
 def page(path, title, desc, body, jsonld=None, og_type="website", md_alt=None):
