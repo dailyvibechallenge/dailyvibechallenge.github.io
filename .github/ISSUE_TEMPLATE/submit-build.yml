@@ -1,0 +1,32 @@
+name: Submit your build
+description: Share what you built for a Daily Vibe Challenge (may be featured in the showcase / weekly roundup)
+title: "[Build] #NNN — your project name"
+labels: ["submission"]
+body:
+  - type: input
+    id: challenge
+    attributes: {label: Challenge number, placeholder: "#005"}
+    validations: {required: true}
+  - type: input
+    id: link
+    attributes: {label: Live demo or repo URL, placeholder: "https://..."}
+    validations: {required: true}
+  - type: input
+    id: tool
+    attributes: {label: AI tool(s) used, placeholder: "Claude Code, Cursor, Replit Agent, Lovable, Bolt, v0..."}
+  - type: input
+    id: time
+    attributes: {label: Time spent, placeholder: "45 min"}
+  - type: textarea
+    id: notes
+    attributes: {label: What worked / prompt tweaks / screenshot, description: Drag a screenshot or GIF here.}
+  - type: input
+    id: handle
+    attributes: {label: Credit as (optional handle or "anonymous"), placeholder: "@you.bsky.social"}
+  - type: checkboxes
+    id: ok
+    attributes:
+      label: Permission
+      options:
+        - label: OK to feature this build (link + screenshot) on the site, newsletter and Bluesky
+          required: true

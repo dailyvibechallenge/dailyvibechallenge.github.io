@@ -7,6 +7,9 @@ SITE = "https://dailyvibechallenge.github.io"
 NAME = "Daily Vibe Challenge"
 TAGLINE = "Daily AI vibe-coding challenges with copy-paste starter prompts for Claude Code, Cursor, Replit Agent and Lovable."
 EMAIL = "dailyvibe@mail.grokbot.com"
+REPO = "https://github.com/dailyvibechallenge/dailyvibechallenge.github.io"
+SUBMIT = REPO + "/issues/new?template=submit-build.yml"
+STATS = {"challenges": None, "subscribers": "0 (just launched)", "bluesky": "new account", "launched": "October 2026"}
 ROOT = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(ROOT, "_site")
 esc = html.escape
@@ -121,12 +124,12 @@ const t=b.parentElement.querySelector('pre').innerText;try{await navigator.clipb
 const o=b.textContent;b.textContent='Copied ✓';setTimeout(()=>b.textContent=o,1600)});"""
 
 NEWSLETTER = f"""<section class="card newsletter" id="newsletter">
-<h2 style="margin-top:0">Get the daily challenge by email</h2>
-<p class="meta">One challenge + starter prompt in your inbox each day. Free, unsubscribe anytime.</p>
+<h2 style="margin-top:0">⚡ Get tomorrow's challenge before everyone else</h2>
+<p class="meta">One fresh challenge + copy-paste starter prompt in your inbox every morning, plus a weekly roundup of the best community builds. Free, no spam, unsubscribe in one click.</p>
 <form action="https://buttondown.com/api/emails/embed-subscribe/dailyvibe" method="post" target="popupwindow" onsubmit="window.open('https://buttondown.com/dailyvibe','popupwindow')" style="display:flex;gap:8px;flex-wrap:wrap">
 <input type="email" name="email" id="bd-email" placeholder="you@example.com" aria-label="Email address" required>
 <input type="hidden" value="1" name="embed"><button class="btn" type="submit">Subscribe</button></form>
-<p class="meta">Or follow via <a href="/feed.xml">RSS/Atom</a> · <a href="https://buttondown.com/dailyvibe/archive">Newsletter archive</a></p>
+<p class="meta">Or follow on <a href="https://bsky.app/profile/dailyvibechallenge.bsky.social">Bluesky</a> · <a href="/feed.xml">RSS/Atom</a> · <a href="https://buttondown.com/dailyvibe/archive">Newsletter archive</a></p>
 </section>"""
 
 def page(path, title, desc, body, jsonld=None, og_type="website", md_alt=None):
@@ -139,11 +142,11 @@ def page(path, title, desc, body, jsonld=None, og_type="website", md_alt=None):
 <meta name="color-scheme" content="light dark"><link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
 <meta property="og:type" content="{og_type}"><meta property="og:site_name" content="{NAME}"><meta property="og:title" content="{esc(title)}">
 <meta property="og:description" content="{esc(desc)}"><meta property="og:url" content="{url}">
-<meta name="twitter:card" content="summary"><meta name="twitter:title" content="{esc(title)}"><meta name="twitter:description" content="{esc(desc)}">
+<meta property="og:image" content="{SITE}/og.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="{SITE}/og.png"><meta name="twitter:title" content="{esc(title)}"><meta name="twitter:description" content="{esc(desc)}">
 <link rel="alternate" type="application/atom+xml" title="{NAME}" href="/feed.xml">{alt}
 <style>{CSS}</style>{ld}</head><body>
 <header class="site"><div class="wrap"><a class="brand" href="/">Daily <span>Vibe</span> Challenge</a>
-<nav><a href="/archive/">Archive</a><a href="/about/">About</a><a href="/feed.xml">RSS</a></nav></div></header>
+<nav><a href="/archive/">Archive</a><a href="/showcase/">Showcase</a><a href="/sponsor/">Sponsor</a><a href="/about/">About</a><a href="/#newsletter" class="btn" style="color:#fff;padding:5px 12px">Subscribe</a></nav></div></header>
 <main class="wrap">{body}</main>
 <footer><div class="wrap">© {NAME} · <a href="mailto:{EMAIL}">{EMAIL}</a> · <a href="/llms.txt">llms.txt</a> · <a href="/challenges.json">JSON</a> · No trackers.</div></footer>
 <script>{JS}</script></body></html>"""
@@ -174,6 +177,7 @@ def main():
                        {"@type": "HowToStep", "name": "Paste it into your AI coding agent and iterate", "text": "Run the prompt in Claude Code, Cursor, Replit Agent or Lovable and iterate until the success criteria pass."}]}
         body = f"""<article><p class="meta">Challenge #{c['num']} · <time datetime="{c['date']}">{c['date']}</time></p>
 <h1>{esc(c['title'])}</h1><p>{tags(c)}</p>{md(body_md)}
+<section class="card"><strong>Built it?</strong> Share your build and get featured in the <a href="/showcase/">showcase</a> &amp; weekly roundup: <a class="btn" href="{SUBMIT}">Submit your build →</a></section>
 <p class="meta">Plain markdown: <a href="/challenges/{c['slug']}.md">{c['slug']}.md</a></p></article>{NEWSLETTER}"""
         write(f"challenges/{c['slug']}/index.html", page(path, f"#{c['num']} {c['title']} — {NAME}", c["description"], body, [ld], "article", f"/challenges/{c['slug']}.md"))
         write(f"challenges/{c['slug']}.md", c["body"])
@@ -186,7 +190,7 @@ def main():
 <p><a class="btn" href="/challenges/{t['slug']}/">Open full challenge →</a></p></section>"""
     else: hero = "<p>No challenges yet.</p>"
     recent = "".join(f'<li><a href="/challenges/{c["slug"]}/">#{c["num"]} {esc(c["title"])}</a><br><span class="meta">{c["date"]} · {esc(c["difficulty"])} · {esc(c["theme"])}</span></li>' for c in cs[1:8])
-    home = f"""<h1>A new AI vibe-coding challenge every day</h1><p class="meta">{esc(TAGLINE)}</p>{hero}
+    home = f"""<h1>A new AI vibe-coding challenge every day</h1><p class="meta">{esc(TAGLINE)}</p><p><a class="btn" href="#newsletter">Get it daily by email — free</a> &nbsp;<a href="{SUBMIT}">Submit a build</a></p>{hero}
 {('<h2>Recent challenges</h2><ul class="list">' + recent + '</ul><p><a href="/archive/">Full archive →</a></p>') if recent else ''}{NEWSLETTER}"""
     write("index.html", page("/", f"{NAME} — daily AI vibe-coding challenges & starter prompts", TAGLINE, home, [website_ld]))
     # archive
@@ -201,6 +205,32 @@ def main():
 <h2>For AI agents</h2><p>Machine-readable: <a href="/llms.txt">/llms.txt</a>, <a href="/llms-full.txt">/llms-full.txt</a>, <a href="/challenges.json">/challenges.json</a>, and a raw <code>.md</code> for every challenge.</p>
 <h2>Contact</h2><p><a href="mailto:{EMAIL}">{EMAIL}</a></p><p class="meta">This site uses no cookies, analytics or trackers.</p>{NEWSLETTER}"""
     write("about/index.html", page("/about/", f"About — {NAME}", f"What {NAME} is and how to use the daily starter prompts.", about))
+    # sponsor
+    sponsor = f"""<h1>Sponsor Daily Vibe Challenge</h1>
+<p>Reach builders who ship with AI every day: developers, indie hackers and makers who use Claude Code, Cursor, Replit Agent, Lovable, Bolt and v0 to turn prompts into working agents, games and prototypes.</p>
+<h2>Audience (live numbers)</h2><table><tbody>
+<tr><td>Challenges published</td><td>{len(cs)} (one new challenge every day)</td></tr>
+<tr><td>Newsletter subscribers</td><td>{STATS['subscribers']}</td></tr>
+<tr><td>Bluesky</td><td>{STATS['bluesky']}</td></tr>
+<tr><td>Launched</td><td>{STATS['launched']}</td></tr></tbody></table>
+<p class="meta">We're early and honest about it: numbers above are updated from real metrics, never inflated. Founding sponsors get launch pricing locked in.</p>
+<h2>Placements</h2><ul>
+<li><strong>Presented-by challenge</strong> — "Today's challenge is built with &lt;your tool&gt;": the starter prompt is written for your product, with a logo + link on the challenge page, newsletter and social post.</li>
+<li><strong>Newsletter sponsor slot</strong> — one short text ad (50–80 words + link) at the top of the daily email.</li>
+<li><strong>Weekly roundup sponsor</strong> — top slot in the weekly "best builds" email and page.</li>
+<li><strong>Challenge week / game jam</strong> — a themed 5–7 day series with prizes or credits for the best community builds.</li></ul>
+<h2>Rates</h2><p>Rates TBD — founding-sponsor pricing available. Email <a href="mailto:{EMAIL}?subject=Sponsorship">{EMAIL}</a> with your product and dates.</p>
+<p class="meta">Sponsored content is always labelled. We only feature tools our readers can actually build with.</p>{NEWSLETTER}"""
+    write("sponsor/index.html", page("/sponsor/", f"Sponsor — {NAME}", "Sponsor a daily AI vibe-coding challenge: reach developers and makers building with Claude Code, Cursor, Replit, Lovable, Bolt and v0.", sponsor))
+    # showcase
+    showcase = f"""<h1>Showcase</h1><p>Built something from a challenge? Share it — the best builds are featured here, in the weekly roundup email and on Bluesky.</p>
+<p><a class="btn" href="{SUBMIT}">Submit your build →</a></p>
+<h2>How to submit</h2><ol><li>Finish (or half-finish!) any challenge from the <a href="/archive/">archive</a>.</li>
+<li>Open the <a href="{SUBMIT}">submission form</a> (free GitHub account) — add the challenge number, a demo or repo link, the AI tool you used and a screenshot.</li>
+<li>Or post in <a href="{REPO}/discussions">GitHub Discussions</a>, tag <strong>#DailyVibeChallenge</strong> on Bluesky, or email <a href="mailto:{EMAIL}?subject=My%20build">{EMAIL}</a>.</li></ol>
+<h2>Featured builds</h2><p class="meta">No featured builds yet — yours could be the first. See <a href="{REPO}/issues?q=label%3Asubmission">all submissions</a>.</p>{NEWSLETTER}"""
+    write("showcase/index.html", page("/showcase/", f"Showcase — community builds — {NAME}", "Community builds from Daily Vibe Challenge: AI agents, games and prototypes made with copy-paste starter prompts.", showcase))
+    shutil.copy(os.path.join(ROOT, "static", "og.png"), os.path.join(OUT, "og.png"))
     # 404
     write("404.html", page("/404.html", f"Not found — {NAME}", "Page not found.", '<h1>Not found</h1><p><a href="/">Go to today\'s challenge →</a></p>'))
     # feed (Atom)
@@ -210,7 +240,7 @@ def main():
     write("feed.xml", f"""<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom"><title>{NAME}</title><subtitle>{esc(TAGLINE)}</subtitle>
 <link href="{SITE}/"/><link rel="self" href="{SITE}/feed.xml"/><id>{SITE}/</id><updated>{now}</updated><author><name>{NAME}</name></author>{entries}</feed>""")
     # sitemap / robots
-    urls = [("/", now[:10]), ("/archive/", now[:10]), ("/about/", now[:10])] + [(f"/challenges/{c['slug']}/", c["date"]) for c in cs]
+    urls = [("/", now[:10]), ("/archive/", now[:10]), ("/about/", now[:10]), ("/sponsor/", now[:10]), ("/showcase/", now[:10])] + [(f"/challenges/{c['slug']}/", c["date"]) for c in cs]
     write("sitemap.xml", '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' +
           "".join(f"<url><loc>{SITE}{u}</loc><lastmod>{d}</lastmod></url>" for u, d in urls) + "</urlset>\n")
     write("robots.txt", f"User-agent: *\nAllow: /\n\nSitemap: {SITE}/sitemap.xml\n")

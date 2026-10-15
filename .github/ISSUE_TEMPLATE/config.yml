@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Chat / show & tell in Discussions
+    url: https://github.com/dailyvibechallenge/dailyvibechallenge.github.io/discussions
+    about: Share work-in-progress, ask questions, suggest challenge ideas.
