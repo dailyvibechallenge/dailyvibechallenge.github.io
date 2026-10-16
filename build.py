@@ -231,6 +231,7 @@ def main():
 <h2>Featured builds</h2><p class="meta">No featured builds yet — yours could be the first. See <a href="{REPO}/issues?q=label%3Asubmission">all submissions</a>.</p>{NEWSLETTER}"""
     write("showcase/index.html", page("/showcase/", f"Showcase — community builds — {NAME}", "Community builds from Daily Vibe Challenge: AI agents, games and prototypes made with copy-paste starter prompts.", showcase))
     shutil.copy(os.path.join(ROOT, "static", "og.png"), os.path.join(OUT, "og.png"))
+    shutil.copy(os.path.join(ROOT, "static", "googlebf1cb2597616669f.html"), os.path.join(OUT, "googlebf1cb2597616669f.html"))
     # 404
     write("404.html", page("/404.html", f"Not found — {NAME}", "Page not found.", '<h1>Not found</h1><p><a href="/">Go to today\'s challenge →</a></p>'))
     # feed (Atom)
