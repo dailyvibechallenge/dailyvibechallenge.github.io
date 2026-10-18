@@ -146,7 +146,7 @@ def page(path, title, desc, body, jsonld=None, og_type="website", md_alt=None):
 <link rel="alternate" type="application/atom+xml" title="{NAME}" href="/feed.xml">{alt}
 <style>{CSS}</style>{ld}</head><body>
 <header class="site"><div class="wrap"><a class="brand" href="/">Daily <span>Vibe</span> Challenge</a>
-<nav><a href="/archive/">Archive</a><a href="/showcase/">Showcase</a><a href="/sponsor/">Sponsor</a><a href="/about/">About</a><a href="/#newsletter" class="btn" style="color:#fff;padding:5px 12px">Subscribe</a></nav></div></header>
+<nav><a href="/archive/">Archive</a><a href="/roundup/">Roundup</a><a href="/topics/">Topics</a><a href="/showcase/">Showcase</a><a href="/sponsor/">Sponsor</a><a href="/about/">About</a><a href="/#newsletter" class="btn" style="color:#fff;padding:5px 12px">Subscribe</a></nav></div></header>
 <main class="wrap">{body}</main>
 <footer><div class="wrap">© {NAME} · <a href="mailto:{EMAIL}">{EMAIL}</a> · <a href="/llms.txt">llms.txt</a> · <a href="/challenges.json">JSON</a> · No trackers.</div></footer>
 <script>{JS}</script></body></html>"""
@@ -157,6 +157,51 @@ def tags(c):
 def write(rel, content):
     p = os.path.join(OUT, rel); os.makedirs(os.path.dirname(p), exist_ok=True)
     open(p, "w", encoding="utf-8").write(content)
+
+
+TOPICS = [
+    {
+        "slug": "agents",
+        "title": "AI Agents & Tool Use",
+        "meta": "AI agent coding challenges and tool-use vibe coding prompts — build inspectable agents, research desks, and LLM NPCs.",
+        "blurb": "Build agents you can actually understand: tool loops, research desks, and LLM-powered NPCs inside fair game engines.",
+        "keywords": ("agent", "tool use", "text adventure"),
+    },
+    {
+        "slug": "games",
+        "title": "Games & Play",
+        "meta": "Vibe coding game project ideas — cozy idle games, pixel art jams, and tiny multiplayer browser games with starter prompts.",
+        "blurb": "Ship playable browser games in an afternoon: cozy idle loops, pixel dungeon dashes, and cross-tab multiplayer duels.",
+        "keywords": ("game", "pixel", "multiplayer", "cozy"),
+    },
+    {
+        "slug": "prototyping",
+        "title": "Rapid Prototyping & Toys",
+        "meta": "Rapid prototyping and tech-toy vibe coding challenges — napkin specs to clickable prototypes, git visualizations, and browser toys.",
+        "blurb": "Go from idea to demo fast: clickable phone prototypes from plain text, git history time-lapses, and microphone-powered browser toys.",
+        "keywords": ("prototyp", "dev tool", "tech toy"),
+    },
+]
+
+def topic_matches(c, topic):
+    t = (c.get("theme") or "").lower()
+    return any(k in t for k in topic["keywords"])
+
+def iso_week_key(date_str):
+    y, m, d = map(int, date_str.split("-"))
+    iso = datetime.date(y, m, d).isocalendar()
+    return f"{iso.year}-w{iso.week:02d}", iso
+
+def week_label(week_key, dates):
+    """Human range from challenge dates in the week, e.g. Oct 14–18, 2026."""
+    ds = sorted(datetime.date.fromisoformat(d) for d in dates)
+    a, b = ds[0], ds[-1]
+    if a.year == b.year and a.month == b.month:
+        return f"{a.strftime('%b')} {a.day}–{b.day}, {a.year}"
+    if a.year == b.year:
+        return f"{a.strftime('%b')} {a.day} – {b.strftime('%b')} {b.day}, {a.year}"
+    return f"{a.strftime('%b')} {a.day}, {a.year} – {b.strftime('%b')} {b.day}, {b.year}"
+
 
 def main():
     shutil.rmtree(OUT, ignore_errors=True); os.makedirs(OUT)
@@ -230,6 +275,80 @@ def main():
 <li>Or post in <a href="{REPO}/discussions">GitHub Discussions</a>, tag <strong>#DailyVibeChallenge</strong> on Bluesky, or email <a href="mailto:{EMAIL}?subject=My%20build">{EMAIL}</a>.</li></ol>
 <h2>Featured builds</h2><p class="meta">No featured builds yet — yours could be the first. See <a href="{REPO}/issues?q=label%3Asubmission">all submissions</a>.</p>{NEWSLETTER}"""
     write("showcase/index.html", page("/showcase/", f"Showcase — community builds — {NAME}", "Community builds from Daily Vibe Challenge: AI agents, games and prototypes made with copy-paste starter prompts.", showcase))
+    # weekly roundups
+    weeks = {}
+    for c in cs:
+        wk, _ = iso_week_key(c["date"])
+        weeks.setdefault(wk, []).append(c)
+    roundup_urls = []
+    for wk, items in sorted(weeks.items(), reverse=True):
+        items_asc = sorted(items, key=lambda c: (c["date"], c["num"]))
+        label = week_label(wk, [c["date"] for c in items_asc])
+        title = f"Week in Vibes — {label}"
+        desc = f"Weekly roundup of {len(items_asc)} Daily Vibe Challenges ({label}): AI agents, games, prototyping and tech toys with copy-paste starter prompts."
+        lis = "".join(
+            f'<li><a href="/challenges/{c["slug"]}/">#{c["num"]} {esc(c["title"])}</a> '
+            f'<span class="tag">{esc(c["theme"])}</span><br>'
+            f'<span class="meta">{esc(c["description"][:180] + ("…" if len(c["description"]) > 180 else ""))}</span></li>'
+            for c in items_asc
+        )
+        body = f"""<article>
+<p class="meta">Weekly roundup · ISO week {esc(wk)}</p>
+<h1>{esc(title)}</h1>
+<p>A full week of bite-sized AI vibe-coding challenges — each with a copy-paste starter prompt for Claude Code, Cursor, Replit Agent or Lovable. Here's everything we shipped this week.</p>
+<h2>This week's challenges</h2>
+<ul class="list">{lis}</ul>
+<h2>Showcase</h2>
+<p class="meta">No community builds submitted yet this week. Be the first — finish any challenge and <a href="{SUBMIT}">submit your build</a> to get featured here and in next Sunday's roundup.</p>
+<p><a class="btn" href="{SUBMIT}">Submit your build →</a></p>
+<h2>Tool tip of the week</h2>
+<p>Paste the starter prompt straight into <strong>Claude Code</strong> or <strong>Cursor</strong> Agent chat, then iterate against the success criteria section. Keep the prompt file open beside your editor so you can tweak constraints without rewriting from scratch.</p>
+</article>{NEWSLETTER}"""
+        path = f"/roundup/{wk}/"
+        write(f"roundup/{wk}/index.html", page(path, f"{title} — {NAME}", desc, body,
+            [{"@context": "https://schema.org", "@type": "CollectionPage", "name": title, "url": SITE + path,
+              "description": desc, "isPartOf": {"@type": "WebSite", "name": NAME, "url": SITE + "/"}}]))
+        roundup_urls.append((path, items_asc[-1]["date"], wk, label, len(items_asc)))
+    # roundup index
+    rrows = "".join(
+        f'<li><a href="{u}">Week in Vibes — {esc(lab)}</a><br><span class="meta">{n} challenges · {esc(wk)}</span></li>'
+        for u, _d, wk, lab, n in roundup_urls
+    )
+    write("roundup/index.html", page("/roundup/", f"Week in Vibes roundups — {NAME}",
+        "Weekly roundups of Daily Vibe Challenge: every AI vibe-coding challenge of the week, plus community builds and a tool tip.",
+        f'<h1>Week in Vibes</h1><p class="meta">Sunday roundups of the week\'s challenges, showcase builds, and one tool tip.</p><ul class="list">{rrows or "<li>No roundups yet.</li>"}</ul>{NEWSLETTER}',
+        [{"@context": "https://schema.org", "@type": "CollectionPage", "name": "Week in Vibes roundups", "url": SITE + "/roundup/"}]))
+    # topic hubs
+    topic_urls = []
+    for topic in TOPICS:
+        matched = [c for c in cs if topic_matches(c, topic)]
+        matched = sorted(matched, key=lambda c: (c["date"], c["num"]), reverse=True)
+        lis = "".join(
+            f'<li><a href="/challenges/{c["slug"]}/">#{c["num"]} {esc(c["title"])}</a><br>'
+            f'<span class="meta">{c["date"]} · {esc(c["difficulty"])} · {esc(c["theme"])}</span><br>'
+            f'{esc(c["description"][:200] + ("…" if len(c["description"]) > 200 else ""))}</li>'
+            for c in matched
+        ) or '<li class="meta">No challenges in this topic yet — check back soon.</li>'
+        path = f"/topics/{topic['slug']}/"
+        body = f"""<article>
+<h1>{esc(topic["title"])}</h1>
+<p>{esc(topic["blurb"])}</p>
+<p class="meta">{len(matched)} challenge{"s" if len(matched) != 1 else ""} · <a href="/topics/">All topics</a></p>
+<ul class="list">{lis}</ul>
+</article>{NEWSLETTER}"""
+        write(f"topics/{topic['slug']}/index.html", page(path, f"{topic['title']} — {NAME}", topic["meta"], body,
+            [{"@context": "https://schema.org", "@type": "CollectionPage", "name": topic["title"], "url": SITE + path,
+              "description": topic["meta"], "about": topic["title"],
+              "isPartOf": {"@type": "WebSite", "name": NAME, "url": SITE + "/"}}]))
+        topic_urls.append((path, topic, len(matched)))
+    tlis = "".join(
+        f'<li><a href="{u}">{esc(t["title"])}</a><br><span class="meta">{n} challenge{"s" if n != 1 else ""} · {esc(t["blurb"])}</span></li>'
+        for u, t, n in topic_urls
+    )
+    write("topics/index.html", page("/topics/", f"Topics — vibe coding challenge hubs — {NAME}",
+        "Browse Daily Vibe Challenge by topic: AI agents, games, rapid prototyping and tech toys. Long-tail vibe coding project ideas with starter prompts.",
+        f'<h1>Topics</h1><p class="meta">Browse challenges by theme — great if you\'re hunting for a weekend project idea.</p><ul class="list">{tlis}</ul>{NEWSLETTER}',
+        [{"@context": "https://schema.org", "@type": "CollectionPage", "name": "Topics", "url": SITE + "/topics/"}]))
     shutil.copy(os.path.join(ROOT, "static", "og.png"), os.path.join(OUT, "og.png"))
     shutil.copy(os.path.join(ROOT, "static", "googlebf1cb2597616669f.html"), os.path.join(OUT, "googlebf1cb2597616669f.html"))
     # 404
@@ -241,7 +360,10 @@ def main():
     write("feed.xml", f"""<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom"><title>{NAME}</title><subtitle>{esc(TAGLINE)}</subtitle>
 <link href="{SITE}/"/><link rel="self" href="{SITE}/feed.xml"/><id>{SITE}/</id><updated>{now}</updated><author><name>{NAME}</name></author>{entries}</feed>""")
     # sitemap / robots
-    urls = [("/", now[:10]), ("/archive/", now[:10]), ("/about/", now[:10]), ("/sponsor/", now[:10]), ("/showcase/", now[:10])] + [(f"/challenges/{c['slug']}/", c["date"]) for c in cs]
+    urls = [("/", now[:10]), ("/archive/", now[:10]), ("/roundup/", now[:10]), ("/topics/", now[:10]), ("/about/", now[:10]), ("/sponsor/", now[:10]), ("/showcase/", now[:10])]
+    urls += [(u, d) for u, d, *_ in roundup_urls]
+    urls += [(u, now[:10]) for u, _t, _n in topic_urls]
+    urls += [(f"/challenges/{c['slug']}/", c["date"]) for c in cs]
     write("sitemap.xml", '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' +
           "".join(f"<url><loc>{SITE}{u}</loc><lastmod>{d}</lastmod></url>" for u, d in urls) + "</urlset>\n")
     write("robots.txt", f"User-agent: *\nAllow: /\n\nSitemap: {SITE}/sitemap.xml\n")
@@ -251,6 +373,10 @@ def main():
         {"url": f"{SITE}/challenges/{c['slug']}/", "markdown_url": f"{SITE}/challenges/{c['slug']}.md"} for c in cs]}, indent=2, ensure_ascii=False))
     write("llms.txt", f"# {NAME}\n\n> {TAGLINE}\n\nOne new challenge per day: AI agents, games, tech and rapid prototyping. Each has a description, a copy-paste starter prompt, success criteria and optional extensions. Contact: {EMAIL}\n\n"
           f"## Challenges\n\n" + "".join(f"- [#{c['num']} {c['title']}]({SITE}/challenges/{c['slug']}.md): {c['date']} · {c['difficulty']} · {c['theme']}. {c['description']}\n" for c in cs) +
+          f"\n## Roundups\n\n- [Week in Vibes index]({SITE}/roundup/)\n" +
+          "".join(f"- [Week in Vibes — {lab}]({SITE}{u})\n" for u, _d, wk, lab, n in roundup_urls) +
+          f"\n## Topics\n\n- [Topics index]({SITE}/topics/)\n" +
+          "".join(f"- [{t['title']}]({SITE}{u})\n" for u, t, n in topic_urls) +
           f"\n## Machine-readable\n\n- [All challenges in one markdown file]({SITE}/llms-full.txt)\n- [JSON index]({SITE}/challenges.json)\n- [Atom feed]({SITE}/feed.xml)\n\n## Optional\n\n- [About]({SITE}/about/)\n- [Archive]({SITE}/archive/)\n")
     write("llms-full.txt", f"# {NAME} — all challenges\n\n> {TAGLINE}\n\n" + "\n\n---\n\n".join(f"<!-- {SITE}/challenges/{c['slug']}/ · {c['date']} -->\n{c['body']}" for c in cs))
     write(".nojekyll", "")
