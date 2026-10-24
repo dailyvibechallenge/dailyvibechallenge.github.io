@@ -51,6 +51,10 @@ Git identity is configured locally in this repo (Daily Vibe Challenge / noreply 
 ## What gets regenerated automatically
 Home, challenge page (with Copy prompt button), raw `.md` copy, archive, about, `feed.xml` (Atom), `sitemap.xml`,
 `robots.txt`, `llms.txt`, `llms-full.txt`, `challenges.json`, JSON-LD (WebSite + HowTo per challenge), OG/Twitter tags.
+Also `/ideas/` (Vibe Coding Project Ideas: every challenge grouped by theme via `IDEA_GROUPS` — agents, games, tech toys,
+prototyping; unmatched themes fall into "More ideas") and `/starter-prompts/` (10 Best Vibe Coding Starter Prompts: the
+curated, agent-optimized short prompts in `STARTER_PICKS`, topped up from the newest challenges if a pick is missing, plus an
+automatic "today's newest prompt" card). New challenges appear on both with no extra steps; to swap a pick, edit `STARTER_PICKS`.
 
 ## Newsletter
 The newsletter block (Buttondown embed form, username `dailyvibe`) is the `NEWSLETTER` constant in `build.py`, shown on home, challenge and about pages.
