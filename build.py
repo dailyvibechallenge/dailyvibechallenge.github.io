@@ -148,7 +148,7 @@ def page(path, title, desc, body, jsonld=None, og_type="website", md_alt=None):
 <header class="site"><div class="wrap"><a class="brand" href="/">Daily <span>Vibe</span> Challenge</a>
 <nav><a href="/archive/">Archive</a><a href="/ideas/">Ideas</a><a href="/starter-prompts/">Prompts</a><a href="/roundup/">Roundup</a><a href="/topics/">Topics</a><a href="/showcase/">Showcase</a><a href="/sponsor/">Sponsor</a><a href="/about/">About</a><a href="/#newsletter" class="btn" style="color:#fff;padding:5px 12px">Subscribe</a></nav></div></header>
 <main class="wrap">{body}</main>
-<footer><div class="wrap">© {NAME} · <a href="/starter-prompts/">10 best starter prompts</a> · <a href="/ideas/">Project ideas</a> · <a href="mailto:{EMAIL}">{EMAIL}</a> · <a href="/llms.txt">llms.txt</a> · <a href="/challenges.json">JSON</a> · No trackers.</div></footer>
+<footer><div class="wrap">© {NAME} · <a href="/guide/">Beginner's guide</a> · <a href="/starter-prompts/">10 best starter prompts</a> · <a href="/ideas/">Project ideas</a> · <a href="mailto:{EMAIL}">{EMAIL}</a> · <a href="/llms.txt">llms.txt</a> · <a href="/challenges.json">JSON</a> · No trackers.</div></footer>
 <script>{JS}</script></body></html>"""
 
 def tags(c):
@@ -202,6 +202,16 @@ def week_label(week_key, dates):
         return f"{a.strftime('%b')} {a.day} – {b.strftime('%b')} {b.day}, {a.year}"
     return f"{a.strftime('%b')} {a.day}, {a.year} – {b.strftime('%b')} {b.day}, {b.year}"
 
+
+# Per-week editorial for "Week in Vibes" roundups (keyed by ISO week). Weeks without notes use the generic text.
+ROUNDUP_NOTES = {
+    "2026-w43": {
+        "intro": "Week two went deeper on AI agents that check their own work: a tiny coding agent that fixes failing tests while you approve every edit, an AI playtester that gets stuck in your text adventure so players don't, and a fake backend that an AI improvises so you can prototype a frontend before any server exists. In between: a cozy fishing game, a serverless draw-and-guess duel, a sprite palette fixer and a one-button daily tower game.",
+        "pick": "010",
+        "pick_why": "If you only try one this week, make it Pocket Coding Agent. It runs entirely in the browser with a scripted mock model, so you need no API key, and watching the plan, tool call, result loop step by step is the fastest way to understand what Claude Code or Cursor Agent is doing under the hood.",
+        "tip": "Give your agent a definition of done before it starts. End every prompt with a short \"Done when:\" list (the page loads with no console errors, the tests pass, a screenshot matches) and ask it to check each item itself before reporting back. Agents stop much earlier and much more honestly when they know what finished looks like.",
+    },
+}
 
 # ---- growth pages: /starter-prompts/ and /ideas/ ----
 # Curated, agent-optimized short versions of challenge prompts (keyed by challenge number).
@@ -449,6 +459,56 @@ def build_ideas(cs):
     return groups
 
 
+# ---- SEO page: /guide/ (beginner's guide to vibe coding) ----
+GUIDE_FAQ = [
+    ("What is vibe coding?", "Vibe coding means building software by describing what you want in plain language to an AI coding agent, then steering it by testing the result and giving feedback, instead of writing every line yourself."),
+    ("Do I need to know how to code to start vibe coding?", "No. You can ship small browser projects with no coding background. Knowing how to open a browser's developer console and read an error message helps a lot, and you will pick up code naturally by reading what the agent writes."),
+    ("Which AI tool is best for beginners?", "Browser-based builders such as Lovable, Bolt or Replit Agent need no setup, so they are the easiest start. Editor and terminal agents such as Cursor and Claude Code give you more control once you are comfortable with files and a terminal. Every Daily Vibe starter prompt works in all of them."),
+    ("How long does a first vibe coding project take?", "A beginner challenge here is scoped for one to three hours, including a few rounds of fixes. Keeping the first project small, one HTML file with no build step, is the biggest factor in finishing."),
+    ("Why does the AI keep breaking things that already worked?", "Usually the request was too big or too vague. Ask for one change at a time, keep a short list of success criteria the agent must re-check after every change, and commit or save a copy whenever something works so you can roll back."),
+]
+
+def build_guide(cs):
+    beg = sorted([c for c in cs if (c.get("difficulty") or "").lower().startswith("beginner")], key=lambda c: c["num"])
+    blis = "".join(
+        f'<li><a href="/challenges/{c["slug"]}/">#{c["num"]} {esc(c["title"])}</a><br><span class="meta">{esc(c["time"])} · {esc(c["theme"])}</span></li>'
+        for c in beg) or '<li class="meta">Beginner challenges coming soon.</li>'
+    faq = "".join(f"<h3>{esc(q)}</h3><p>{esc(a)}</p>" for q, a in GUIDE_FAQ)
+    desc = "How to start vibe coding as a beginner: pick an AI coding tool, write a good first prompt, iterate against success criteria, and finish a small project in an afternoon. Includes free beginner challenges."
+    body = f"""<article>
+<p class="meta">Guide · updated with every new beginner challenge</p>
+<h1>How to Start Vibe Coding: A Beginner's Guide</h1>
+<p>Vibe coding is building software by telling an AI coding agent what you want in plain language, then steering it by trying the result and giving feedback. You don't need to be a programmer to start. You need a small idea, a clear prompt, and a way to check whether it works. This guide walks you through your first project.</p>
+<h2>1. Pick one tool</h2>
+<ul><li><strong>No setup:</strong> Lovable, Bolt or Replit Agent run in the browser and show a live preview. Best for a first project.</li>
+<li><strong>More control:</strong> Cursor (an AI code editor) or Claude Code (an agent in your terminal) work on real files on your computer. Great once you are comfortable saving files and opening a terminal.</li></ul>
+<p>Don't switch tools mid-project. Every <a href="/archive/">Daily Vibe challenge</a> prompt works in all of them.</p>
+<h2>2. Start smaller than you think</h2>
+<p>Your first project should be one page that runs in a browser: a toy, a tiny game, a single-purpose tool. "One index.html, vanilla JavaScript, no build step" is the most reliable phrase in vibe coding, because there is nothing to install and nothing for the agent to misconfigure.</p>
+<h2>3. Write a prompt with a goal, a build list and a finish line</h2>
+<p>Good starter prompts have three parts:</p>
+<ol><li><strong>Goal:</strong> one sentence on what you're building and the tech limits.</li>
+<li><strong>Build:</strong> 4 to 8 concrete bullet points of features.</li>
+<li><strong>Done when:</strong> a short checklist the agent can verify itself, such as "loads with no console errors" or "the score saves after a refresh".</li></ol>
+<p>Want ready-made ones? Copy any of the <a href="/starter-prompts/">10 best vibe coding starter prompts</a>.</p>
+<h2>4. Iterate one change at a time</h2>
+<p>Run what the agent built, then ask for exactly one fix or feature per message. Paste the exact error text when something breaks. After each change, ask the agent to re-check the "Done when" list. Save a copy (or a git commit) every time something works so you can always go back.</p>
+<h2>5. Finish and share</h2>
+<p>A finished small project beats an abandoned big one. When your checklist passes, deploy it for free (GitHub Pages, Netlify, or your tool's built-in publish button) and share it. Built one of our challenges? <a href="{SUBMIT}">Submit your build</a> to be featured in the <a href="/showcase/">showcase</a> and the Sunday <a href="/roundup/">Week in Vibes</a> roundup.</p>
+<h2>Beginner challenges to try first</h2>
+<p>Each takes one to three hours and comes with a copy-paste starter prompt and success criteria.</p>
+<ul class="list">{blis}</ul>
+<p>More ideas: <a href="/ideas/">vibe coding project ideas by topic</a> · <a href="/topics/">topic hubs</a>.</p>
+<h2>Common questions</h2>
+{faq}
+</article>{newsletter_form("Get one beginner-friendly challenge a day", "A new challenge and starter prompt every morning, plus a Sunday roundup. Free, no spam, unsubscribe in one click.", "guide-bottom")}"""
+    ld = [{"@context": "https://schema.org", "@type": "Article", "headline": "How to Start Vibe Coding: A Beginner's Guide", "description": desc,
+           "url": SITE + "/guide/", "author": {"@type": "Organization", "name": NAME}, "publisher": {"@type": "Organization", "name": NAME},
+           "dateModified": (cs[0]["date"] if cs else datetime.date.today().isoformat())},
+          {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [
+              {"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": a}} for q, a in GUIDE_FAQ]}]
+    write("guide/index.html", page("/guide/", f"How to Start Vibe Coding: A Beginner's Guide — {NAME}", desc, body, ld, "article"))
+
 def main():
     shutil.rmtree(OUT, ignore_errors=True); os.makedirs(OUT)
     cs = load()
@@ -482,7 +542,7 @@ def main():
     else: hero = "<p>No challenges yet.</p>"
     recent = "".join(f'<li><a href="/challenges/{c["slug"]}/">#{c["num"]} {esc(c["title"])}</a><br><span class="meta">{c["date"]} · {esc(c["difficulty"])} · {esc(c["theme"])}</span></li>' for c in cs[1:8])
     home = f"""<h1>A new AI vibe-coding challenge every day</h1><p class="meta">{esc(TAGLINE)}</p><p><a class="btn" href="#newsletter">Get it daily by email — free</a> &nbsp;<a href="{SUBMIT}">Submit a build</a></p>{hero}
-<section class="card"><strong>New here?</strong> Start with the <a href="/starter-prompts/">10 best vibe coding starter prompts</a> or browse <a href="/ideas/">{len(cs)} vibe coding project ideas</a> by topic.</section>
+<section class="card"><strong>New here?</strong> Read <a href="/guide/">how to start vibe coding</a>, grab the <a href="/starter-prompts/">10 best vibe coding starter prompts</a> or browse <a href="/ideas/">{len(cs)} vibe coding project ideas</a> by topic.</section>
 {('<h2>Recent challenges</h2><ul class="list">' + recent + '</ul><p><a href="/archive/">Full archive →</a></p>') if recent else ''}{NEWSLETTER}"""
     write("index.html", page("/", f"{NAME} — daily AI vibe-coding challenges & starter prompts", TAGLINE, home, [website_ld]))
     # archive
@@ -528,7 +588,9 @@ def main():
         wk, _ = iso_week_key(c["date"])
         weeks.setdefault(wk, []).append(c)
     roundup_urls = []
+    week_keys = sorted(weeks)
     for wk, items in sorted(weeks.items(), reverse=True):
+        note = ROUNDUP_NOTES.get(wk, {})
         items_asc = sorted(items, key=lambda c: (c["date"], c["num"]))
         label = week_label(wk, [c["date"] for c in items_asc])
         title = f"Week in Vibes — {label}"
@@ -539,17 +601,29 @@ def main():
             f'<span class="meta">{esc(c["description"][:180] + ("…" if len(c["description"]) > 180 else ""))}</span></li>'
             for c in items_asc
         )
+        pick_html = ""
+        pc = next((c for c in items_asc if c["num"] == note.get("pick")), None)
+        if pc:
+            pick_html = (f'<section class="card"><p class="meta">Pick of the week</p><h2 style="margin-top:0"><a href="/challenges/{pc["slug"]}/">#{pc["num"]} {esc(pc["title"])}</a></h2>'
+                         f'<p>{esc(note.get("pick_why", ""))}</p><p><a class="btn" href="/challenges/{pc["slug"]}/">Get the starter prompt →</a></p></section>\n')
+        i = week_keys.index(wk)
+        nav = []
+        if i > 0: nav.append(f'<a href="/roundup/{week_keys[i-1]}/">← Previous week</a>')
+        nav.append('<a href="/roundup/">All roundups</a>')
+        if i < len(week_keys) - 1: nav.append(f'<a href="/roundup/{week_keys[i+1]}/">Next week →</a>')
+        weeknav = '<p class="meta">' + " · ".join(nav) + "</p>"
         body = f"""<article>
 <p class="meta">Weekly roundup · ISO week {esc(wk)}</p>
 <h1>{esc(title)}</h1>
-<p>A full week of bite-sized AI vibe-coding challenges — each with a copy-paste starter prompt for Claude Code, Cursor, Replit Agent or Lovable. Here's everything we shipped this week.</p>
-<h2>This week's challenges</h2>
+<p>{esc(note.get('intro', 'A full week of bite-sized AI vibe-coding challenges, each with a copy-paste starter prompt for Claude Code, Cursor, Replit Agent or Lovable. Here is everything we shipped this week.'))}</p>
+{pick_html}<h2>This week's challenges</h2>
 <ul class="list">{lis}</ul>
 <h2>Showcase</h2>
 <p class="meta">No community builds submitted yet this week. Be the first — finish any challenge and <a href="{SUBMIT}">submit your build</a> to get featured here and in next Sunday's roundup.</p>
 <p><a class="btn" href="{SUBMIT}">Submit your build →</a></p>
 <h2>Tool tip of the week</h2>
-<p>Paste the starter prompt straight into <strong>Claude Code</strong> or <strong>Cursor</strong> Agent chat, then iterate against the success criteria section. Keep the prompt file open beside your editor so you can tweak constraints without rewriting from scratch.</p>
+<p>{esc(note.get('tip', 'Paste the starter prompt straight into Claude Code or Cursor Agent chat, then iterate against the success criteria section. Keep the prompt file open beside your editor so you can tweak constraints without rewriting from scratch.'))}</p>
+{weeknav}
 </article>{NEWSLETTER}"""
         path = f"/roundup/{wk}/"
         write(f"roundup/{wk}/index.html", page(path, f"{title} — {NAME}", desc, body,
@@ -598,6 +672,7 @@ def main():
         [{"@context": "https://schema.org", "@type": "CollectionPage", "name": "Topics", "url": SITE + "/topics/"}]))
     build_starter_prompts(cs)
     build_ideas(cs)
+    build_guide(cs)
     shutil.copy(os.path.join(ROOT, "static", "og.png"), os.path.join(OUT, "og.png"))
     shutil.copy(os.path.join(ROOT, "static", "googlebf1cb2597616669f.html"), os.path.join(OUT, "googlebf1cb2597616669f.html"))
     # 404
@@ -609,7 +684,7 @@ def main():
     write("feed.xml", f"""<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom"><title>{NAME}</title><subtitle>{esc(TAGLINE)}</subtitle>
 <link href="{SITE}/"/><link rel="self" href="{SITE}/feed.xml"/><id>{SITE}/</id><updated>{now}</updated><author><name>{NAME}</name></author>{entries}</feed>""")
     # sitemap / robots
-    urls = [("/", now[:10]), ("/starter-prompts/", now[:10]), ("/ideas/", now[:10]), ("/archive/", now[:10]), ("/roundup/", now[:10]), ("/topics/", now[:10]), ("/about/", now[:10]), ("/sponsor/", now[:10]), ("/showcase/", now[:10])]
+    urls = [("/", now[:10]), ("/guide/", now[:10]), ("/starter-prompts/", now[:10]), ("/ideas/", now[:10]), ("/archive/", now[:10]), ("/roundup/", now[:10]), ("/topics/", now[:10]), ("/about/", now[:10]), ("/sponsor/", now[:10]), ("/showcase/", now[:10])]
     urls += [(u, d) for u, d, *_ in roundup_urls]
     urls += [(u, now[:10]) for u, _t, _n in topic_urls]
     urls += [(f"/challenges/{c['slug']}/", c["date"]) for c in cs]
@@ -621,7 +696,7 @@ def main():
         {k: c[k] for k in ("num", "slug", "title", "date", "difficulty", "time", "theme", "description", "prompt")} |
         {"url": f"{SITE}/challenges/{c['slug']}/", "markdown_url": f"{SITE}/challenges/{c['slug']}.md"} for c in cs]}, indent=2, ensure_ascii=False))
     write("llms.txt", f"# {NAME}\n\n> {TAGLINE}\n\nOne new challenge per day: AI agents, games, tech and rapid prototyping. Each has a description, a copy-paste starter prompt, success criteria and optional extensions. Contact: {EMAIL}\n\n"
-          f"## Start here\n\n- [10 Best Vibe Coding Starter Prompts]({SITE}/starter-prompts/): ten copy-paste, agent-optimized starter prompts adapted from the challenges.\n- [Vibe Coding Project Ideas]({SITE}/ideas/): every challenge as a project idea, grouped by topic (agents, games, tech toys, prototyping).\n\n"
+          f"## Start here\n\n- [How to Start Vibe Coding: A Beginner's Guide]({SITE}/guide/): pick a tool, write a good first prompt, iterate, and finish a small project.\n- [10 Best Vibe Coding Starter Prompts]({SITE}/starter-prompts/): ten copy-paste, agent-optimized starter prompts adapted from the challenges.\n- [Vibe Coding Project Ideas]({SITE}/ideas/): every challenge as a project idea, grouped by topic (agents, games, tech toys, prototyping).\n\n"
           f"## Challenges\n\n" + "".join(f"- [#{c['num']} {c['title']}]({SITE}/challenges/{c['slug']}.md): {c['date']} · {c['difficulty']} · {c['theme']}. {c['description']}\n" for c in cs) +
           f"\n## Roundups\n\n- [Week in Vibes index]({SITE}/roundup/)\n" +
           "".join(f"- [Week in Vibes — {lab}]({SITE}{u})\n" for u, _d, wk, lab, n in roundup_urls) +
